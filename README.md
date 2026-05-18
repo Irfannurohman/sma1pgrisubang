@@ -246,7 +246,7 @@ siswa.nisn ──┬── alumni.nisn (one-to-one)
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/muadzie/WEB-TRACKING-STUDY.git
+git clone https://github.com/rakaafriza48-hue/SI-SKL-DAN-TRACKING-
 cd WEB-TRACKING-STUDY
 
 # 2. Install dependencies
@@ -282,7 +282,7 @@ Akses aplikasi di: `http://localhost:8080`
 
 ```bash
 # 1. Clone ke folder www Laragon
-git clone https://github.com/muadzie/WEB-TRACKING-STUDY.git C:\laragon\www\si_skl-tracking
+git clone https://github.com/rakaafriza48-hue/SI-SKL-DAN-TRACKING-
 
 # 2. Buka terminal di folder proyek
 composer install
@@ -539,11 +539,5 @@ Proyek ini dilisensikan di bawah **MIT License**. Lihat file [LICENSE](LICENSE) 
 ---
 
 <div align="center">
-
-**Dibuat dengan  untuk SMA PGRI 1 Subang**
-
-[![GitHub stars](https://img.shields.io/github/stars/muadzie/WEB-TRACKING-STUDY?style=social)](https://github.com/muadzie/WEB-TRACKING-STUDY/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/muadzie/WEB-TRACKING-STUDY?style=social)](https://github.com/muadzie/WEB-TRACKING-STUDY/network/members)
-[![GitHub issues](https://img.shields.io/github/issues/muadzie/WEB-TRACKING-STUDY?style=social)](https://github.com/muadzie/WEB-TRACKING-STUDY/issues)
 
 </div>
