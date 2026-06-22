@@ -39,7 +39,27 @@ class AlumniModel extends Model
             FROM alumni
             GROUP BY status_aktivitas
         ");
-        return $query->getResultArray();
+        $results = $query->getResultArray();
+
+        $default = [
+            'BEKERJA' => 0,
+            'KULIAH' => 0,
+            'WIRAUSAHA' => 0,
+            'MENIKAH' => 0,
+            'BELUM' => 0
+        ];
+
+        foreach ($results as $row) {
+            if (!empty($row['status_aktivitas'])) {
+                $default[$row['status_aktivitas']] = $row['total'];
+            }
+        }
+
+        $final = [];
+        foreach ($default as $status => $total) {
+            $final[] = ['status_aktivitas' => $status, 'total' => $total];
+        }
+        return $final;
     }
 
     public function getAlumniByTahun($tahun)

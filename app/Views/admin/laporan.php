@@ -45,7 +45,11 @@
     <a href="<?= base_url('admin/siswa') ?>" class="nav-item"><i class="fa-solid fa-users"></i><span>Data Siswa</span></a>
     <a href="<?= base_url('admin/alumni') ?>" class="nav-item"><i class="fa-solid fa-user-graduate"></i><span>Data Alumni</span></a>
     <a href="<?= base_url('admin/tracer') ?>" class="nav-item"><i class="fa-solid fa-clipboard-list"></i><span>Tracer Study</span></a>
-    <a href="<?= base_url('admin/laporan') ?>" class="nav-item active"><i class="fa-solid fa-file-chart-bar"></i><span>Laporan</span></a>
+    <a href="<?= base_url('admin/laporan') ?>" class="nav-item active"><i class="fa-solid fa-chart-bar"></i><span>Laporan</span></a>
+    
+
+    <a href="<?= base_url('admin/pengaturan-kelulusan') ?>" class="nav-item"><i class="fa-solid fa-clock"></i><span>Pengaturan Kelulusan</span></a>
+    <a href="<?= base_url('admin/keterserapan') ?>" class="nav-item"><i class="fa-solid fa-chart-line"></i><span>Keterserapan</span></a>
     <div class="sidebar-footer"><a href="<?= base_url('logout') ?>" class="nav-item"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></a></div>
 </div>
 <div class="main-content">
@@ -135,3 +139,5 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
+

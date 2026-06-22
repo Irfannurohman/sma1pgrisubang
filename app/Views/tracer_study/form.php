@@ -100,6 +100,7 @@
                         <option value="KULIAH" <?= old('status_setelah_lulus')=='KULIAH'?'selected':''?>>Melanjutkan Kuliah</option>
                         <option value="BEKERJA" <?= old('status_setelah_lulus')=='BEKERJA'?'selected':''?>>Bekerja</option>
                         <option value="WIRAUSAHA" <?= old('status_setelah_lulus')=='WIRAUSAHA'?'selected':''?>>Wirausaha</option>
+                        <option value="MENIKAH" <?= old('status_setelah_lulus')=='MENIKAH'?'selected':''?>>Menikah</option>
                     </select>
                 </div>
                 <div id="tracerKuliah" style="display:<?= old('status_setelah_lulus')=='KULIAH'?'block':'none'?>;">

@@ -55,6 +55,8 @@
         .result-card .detail-item .value { font-weight: 700; color: var(--dark); }
         .btn-cetak { display: inline-flex; align-items: center; gap: 8px; background: var(--dark); color: white; padding: 14px 30px; border-radius: 12px; text-decoration: none; font-weight: 700; margin-top: 20px; transition: all 0.3s; }
         .btn-cetak:hover { background: var(--primary); color: white; transform: translateY(-2px); }
+        .btn-download { background: var(--secondary); }
+        .btn-download:hover { background: #059669; color: white; }
         .not-found { max-width: 500px; margin: 30px auto; background: white; border-radius: 24px; padding: 50px 35px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.08); border: 1px solid var(--border); }
         .not-found .nf-icon { width: 80px; height: 80px; border-radius: 50%; background: #fef2f2; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: #ef4444; font-size: 34px; }
         .not-found h4 { font-weight: 800; color: var(--dark); margin-bottom: 8px; }
@@ -67,7 +69,115 @@
         .feature-card .f-icon { width: 65px; height: 65px; border-radius: 18px; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 26px; color: var(--primary); background: #f5f3ff; }
         footer { background: linear-gradient(135deg, var(--dark), #1e293b); color: white; padding: 50px 8% 30px; border-radius: 40px 40px 0 0; margin-top: 40px; text-align: center; }
         footer small { color: #94a3b8; }
-        @media (max-width: 768px) { .hero { grid-template-columns: 1fr; padding: 40px 5%; text-align: center; } .hero-content h2 { font-size: 32px; } .feature-grid { grid-template-columns: 1fr; } }
+
+        /* ========== COUNTDOWN STYLES ========== */
+        .countdown-section {
+            padding: 60px 8%;
+            text-align: center;
+        }
+        .countdown-card {
+            max-width: 700px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.95);
+            border-radius: 30px;
+            padding: 50px 40px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.1);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(20px);
+        }
+        .countdown-card .lock-icon {
+            width: 100px;
+            height: 100px;
+            border-radius: 28px;
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 25px;
+            font-size: 42px;
+            color: white;
+            box-shadow: 0 15px 30px rgba(245,158,11,0.3);
+            animation: pulse-lock 2s ease-in-out infinite;
+        }
+        @keyframes pulse-lock {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .countdown-card h2 {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--dark);
+            margin-bottom: 8px;
+        }
+        .countdown-card .sub-text {
+            color: var(--text-gray);
+            font-size: 15px;
+            margin-bottom: 35px;
+        }
+        .countdown-timer {
+            display: flex;
+            justify-content: center;
+            gap: 18px;
+            margin-bottom: 30px;
+        }
+        .countdown-timer .time-block {
+            background: linear-gradient(135deg, var(--dark), #1e293b);
+            color: white;
+            border-radius: 18px;
+            padding: 20px 18px;
+            min-width: 90px;
+            box-shadow: 0 10px 25px rgba(15,23,42,0.3);
+        }
+        .countdown-timer .time-block .number {
+            font-size: 42px;
+            font-weight: 800;
+            line-height: 1;
+            background: linear-gradient(135deg, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .countdown-timer .time-block .label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #94a3b8;
+            margin-top: 6px;
+            font-weight: 700;
+        }
+        .countdown-info {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-radius: 14px;
+            padding: 16px 24px;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            color: #92400e;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .countdown-info i { font-size: 20px; color: #f59e0b; }
+        .pesan-admin-box {
+            margin-top: 20px;
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 14px;
+            padding: 16px 24px;
+            color: #0c4a6e;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .action-buttons { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin-top: 20px; }
+
+        @media (max-width: 768px) { 
+            .hero { grid-template-columns: 1fr; padding: 40px 5%; text-align: center; } 
+            .hero-content h2 { font-size: 32px; } 
+            .feature-grid { grid-template-columns: 1fr; } 
+            .countdown-timer { gap: 10px; }
+            .countdown-timer .time-block { min-width: 70px; padding: 15px 12px; }
+            .countdown-timer .time-block .number { font-size: 32px; }
+            nav { padding: 15px 5%; flex-direction: column; gap: 15px; }
+        }
     </style>
 </head>
 <body>
@@ -87,9 +197,95 @@
     </div>
 </nav>
 
+<?php 
+$sudahWaktunya = $sudah_waktunya ?? true;
+$pengaturanData = $pengaturan ?? null;
+?>
+
+<?php if (!$sudahWaktunya && $pengaturanData): ?>
+<!-- ========== COUNTDOWN MODE ========== -->
 <section class="hero">
     <div class="hero-content">
-        <div class="badge"><i class="fa-solid fa-calendar-check"></i> Tahun Pelajaran 2025/2026</div>
+        <div class="badge"><i class="fa-solid fa-calendar-check"></i> Tahun Pelajaran <?= esc($pengaturanData['tahun_ajaran']) ?></div>
+        <h2>Pengumuman<br><span>Kelulusan</span> 2026</h2>
+        <p>Pengumuman kelulusan belum dibuka. Silakan tunggu sampai waktu yang telah ditentukan oleh sekolah.</p>
+        <div class="official-badge" style="display:flex;align-items:center;gap:15px;background:rgba(255,255,255,0.9);padding:18px 22px;border-radius:14px;border-left:4px solid #f59e0b;max-width:450px;">
+            <i class="fa-solid fa-clock" style="color:#f59e0b;font-size:26px;"></i>
+            <div><strong style="font-size:14px;">Menunggu Waktu Pengumuman</strong><br><small style="color:var(--text-gray);">Countdown akan selesai pada waktu yang ditentukan</small></div>
+        </div>
+    </div>
+    <div class="countdown-card">
+        <div class="lock-icon"><i class="fa-solid fa-lock"></i></div>
+        <h2>Pengumuman Belum Dibuka</h2>
+        <p class="sub-text">Waktu pengumuman kelulusan akan dimulai dalam:</p>
+        
+        <div class="countdown-timer" id="countdownTimer">
+            <div class="time-block">
+                <div class="number" id="days">00</div>
+                <div class="label">Hari</div>
+            </div>
+            <div class="time-block">
+                <div class="number" id="hours">00</div>
+                <div class="label">Jam</div>
+            </div>
+            <div class="time-block">
+                <div class="number" id="minutes">00</div>
+                <div class="label">Menit</div>
+            </div>
+            <div class="time-block">
+                <div class="number" id="seconds">00</div>
+                <div class="label">Detik</div>
+            </div>
+        </div>
+
+        <div class="countdown-info">
+            <i class="fa-solid fa-circle-info"></i>
+            Pengumuman: <?= date('d F Y', strtotime($pengaturanData['tanggal_pengumuman'])) ?>, Pukul <?= date('H:i', strtotime($pengaturanData['jam_pengumuman'])) ?> WIB
+        </div>
+
+        <?php if (!empty($pengaturanData['pesan_sebelum'])): ?>
+        <div class="pesan-admin-box">
+            <i class="fa-solid fa-bullhorn me-2"></i>
+            <?= esc($pengaturanData['pesan_sebelum']) ?>
+        </div>
+        <?php endif; ?>
+    </div>
+</section>
+
+<script>
+(function(){
+    var target = <?= strtotime($pengaturanData['tanggal_pengumuman'] . ' ' . $pengaturanData['jam_pengumuman']) * 1000 ?>;
+    var serverTime = <?= time() * 1000 ?>;
+    var localStartTime = new Date().getTime();
+
+    var timer = setInterval(function(){
+        var localNow = new Date().getTime();
+        var elapsed = localNow - localStartTime;
+        var now = serverTime + elapsed;
+        
+        var diff = target - now;
+        if(diff <= 0){
+            clearInterval(timer);
+            location.reload();
+            return;
+        }
+        var d = Math.floor(diff / (1000*60*60*24));
+        var h = Math.floor((diff % (1000*60*60*24)) / (1000*60*60));
+        var m = Math.floor((diff % (1000*60*60)) / (1000*60));
+        var s = Math.floor((diff % (1000*60)) / 1000);
+        document.getElementById('days').textContent = String(d).padStart(2,'0');
+        document.getElementById('hours').textContent = String(h).padStart(2,'0');
+        document.getElementById('minutes').textContent = String(m).padStart(2,'0');
+        document.getElementById('seconds').textContent = String(s).padStart(2,'0');
+    }, 1000);
+})();
+</script>
+
+<?php else: ?>
+<!-- ========== NORMAL MODE (SUDAH WAKTUNYA) ========== -->
+<section class="hero">
+    <div class="hero-content">
+        <div class="badge"><i class="fa-solid fa-calendar-check"></i> Tahun Pelajaran <?= isset($pengaturanData['tahun_ajaran']) ? esc($pengaturanData['tahun_ajaran']) : '2025/2026' ?></div>
         <h2>Pengumuman<br><span>Kelulusan</span> 2026</h2>
         <p>Masukkan NISN resmi untuk mengecek hasil kelulusan Anda secara langsung dan cepat.</p>
         <div class="official-badge" style="display:flex;align-items:center;gap:15px;background:rgba(255,255,255,0.9);padding:18px 22px;border-radius:14px;border-left:4px solid var(--secondary);max-width:450px;">
@@ -140,11 +336,23 @@
     </div>
 
     <?php if ($siswa['status_kelulusan'] == 'LULUS'): ?>
-    <a href="<?= base_url('cetak-kelulusan/' . $siswa['nisn']) ?>" class="btn-cetak" target="_blank">
-        <i class="fa-solid fa-print"></i> Cetak Surat Kelulusan
-    </a>
+    
+    <?php if (isset($pengaturan) && !empty($pengaturan['pesan_sesudah'])): ?>
+    <div class="pesan-admin-box" style="margin-top:20px;">
+        <i class="fa-solid fa-info-circle me-2"></i>
+        <?= esc($pengaturan['pesan_sesudah']) ?>
+    </div>
+    <?php endif; ?>
+
+    <div class="action-buttons">
+        <a href="<?= base_url('cetak-kelulusan/' . $siswa['nisn']) ?>" class="btn-cetak" target="_blank">
+            <i class="fa-solid fa-print"></i> Cetak SKL
+        </a>
+    </div>
     <?php endif; ?>
 </div>
+<?php endif; ?>
+
 <?php endif; ?>
 
 <section class="features">

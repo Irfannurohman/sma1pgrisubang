@@ -33,6 +33,9 @@ $routes->group('admin', ['filter' => 'login:admin'], function($routes) {
     $routes->get('siswa/edit/(:num)', 'Admin::siswaEdit/$1');
     $routes->post('siswa/update', 'Admin::siswaUpdate');
     $routes->get('siswa/hapus/(:num)', 'Admin::siswaHapus/$1');
+    $routes->get('siswa/import', 'Admin::importSiswa');
+    $routes->post('siswa/proses-import', 'Admin::prosesImport');
+    $routes->get('siswa/template-excel', 'Admin::templateExcel');
     
     $routes->get('alumni', 'Admin::alumni');
     $routes->get('alumni/detail/(:num)', 'Admin::alumniDetail/$1');
@@ -47,6 +50,14 @@ $routes->group('admin', ['filter' => 'login:admin'], function($routes) {
     
     $routes->get('laporan', 'Admin::laporan');
     $routes->get('profil', 'Admin::profil');
+
+    // Pengaturan Kelulusan
+    $routes->get('pengaturan-kelulusan', 'Admin::pengaturanKelulusan');
+    $routes->post('pengaturan-kelulusan/simpan', 'Admin::simpanPengaturan');
+    $routes->get('pengaturan-kelulusan/hapus/(:num)', 'Admin::hapusPengaturan/$1');
+
+    // Keterserapan Lulusan
+    $routes->get('keterserapan', 'Admin::keterserapan');
 });
 
 // Kepala Sekolah Routes (with login filter)
@@ -56,4 +67,12 @@ $routes->group('kepsek', ['filter' => 'login:kepsek'], function($routes) {
     $routes->get('alumni', 'Kepalasekolah::alumni');
     $routes->get('tracer', 'Kepalasekolah::tracer');
     $routes->get('laporan', 'Kepalasekolah::laporan');
+    
+    // Pengaturan Kelulusan
+    $routes->get('pengaturan-kelulusan', 'Kepalasekolah::pengaturanKelulusan');
+    $routes->post('pengaturan-kelulusan/simpan', 'Kepalasekolah::simpanPengaturan');
+    $routes->get('pengaturan-kelulusan/hapus/(:num)', 'Kepalasekolah::hapusPengaturan/$1');
+
+    // Keterserapan Lulusan
+    $routes->get('keterserapan', 'Kepalasekolah::keterserapan');
 });

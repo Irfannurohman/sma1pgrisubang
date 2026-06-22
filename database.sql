@@ -8,6 +8,21 @@ CREATE DATABASE IF NOT EXISTS db_kelulusan;
 USE db_kelulusan;
 
 -- ------------------------------------------------------------
+-- Table: pengaturan_kelulusan (Pengaturan Waktu Pengumuman)
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS pengaturan_kelulusan (
+    id INT(11) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tahun_ajaran VARCHAR(20) NOT NULL,
+    tanggal_pengumuman DATE NOT NULL,
+    jam_pengumuman TIME NOT NULL,
+    pesan_sebelum TEXT DEFAULT NULL,
+    pesan_sesudah TEXT DEFAULT NULL,
+    is_aktif TINYINT(1) DEFAULT 1,
+    created_at DATETIME DEFAULT NULL,
+    updated_at DATETIME DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ------------------------------------------------------------
 -- Table: users (Admin & Kepala Sekolah)
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS users (

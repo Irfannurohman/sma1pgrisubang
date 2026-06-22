@@ -42,6 +42,7 @@ Sistem Informasi Kelulusan & Tracking Alumni adalah aplikasi berbasis web yang d
 | **Google Fonts** | - | Font Plus Jakarta Sans |
 | **Apache** | - | Web server (Laragon) |
 | **Web Audio API** | - | Sound effects countdown |
+| **Dompdf** | - | Generate SKL PDF |
 
 ### 2.2 Arsitektur MVC
 
@@ -115,6 +116,20 @@ Request → Routes → Controller → Model → Database
 │                               │ created_at         │               │
 │                               │ updated_at         │               │
 │                               └────────────────────┘               │
+│                                                                     │
+│  ┌────────────────────────┐                                         │
+│  │ pengaturan_kelulusan   │                                         │
+│  ├────────────────────────┤                                         │
+│  │ id (PK)                │                                         │
+│  │ tahun_ajaran           │                                         │
+│  │ tanggal_pengumuman     │                                         │
+│  │ jam_pengumuman         │                                         │
+│  │ pesan_sebelum          │                                         │
+│  │ pesan_sesudah          │                                         │
+│  │ is_aktif               │                                         │
+│  │ created_at             │                                         │
+│  │ updated_at             │                                         │
+│  └────────────────────────┘                                         │
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -168,7 +183,7 @@ Menyimpan data tracking alumni.
 | no_hp | VARCHAR(20) | Nomor HP |
 | email | VARCHAR(255) | Alamat email |
 | alamat | TEXT | Alamat tinggal |
-| status_aktivitas | ENUM('BEKERJA','KULIAH','WIRAUSAHA','BELUM') | Status setelah lulus |
+| status_aktivitas | ENUM('BEKERJA','KULIAH','WIRAUSAHA','BELUM','MENIKAH') | Status setelah lulus |
 | nama_instansi | VARCHAR(255) | Nama PT/Perusahaan/Usaha |
 | jurusan_kuliah | VARCHAR(255) | Jurusan kuliah |
 | posisi_kerja | VARCHAR(255) | Posisi pekerjaan |
@@ -195,6 +210,21 @@ Menyimpan data tracer study yang diisi alumni.
 | gaji_range | VARCHAR(100) | Range gaji |
 | kesesuaian_jurusan | ENUM('SESUAI','TIDAK_SESUAI','CUKUP_SESUAI') | Kesesuaian jurusan |
 | saran | TEXT | Saran untuk almamater |
+| created_at / updated_at | DATETIME | Timestamp |
+
+#### 3.2.5 Tabel `pengaturan_kelulusan`
+
+Menyimpan data pengaturan waktu pengumuman kelulusan.
+
+| Kolom | Tipe | Keterangan |
+|-------|------|------------|
+| id | INT(11) UNSIGNED AUTO_INCREMENT | Primary Key |
+| tahun_ajaran | VARCHAR(20) | Tahun ajaran |
+| tanggal_pengumuman | DATE | Tanggal pengumuman |
+| jam_pengumuman | TIME | Jam pengumuman |
+| pesan_sebelum | TEXT | Pesan saat belum waktunya |
+| pesan_sesudah | TEXT | Pesan saat sudah waktunya |
+| is_aktif | TINYINT(1) | Status aktif (1=aktif, 0=tidak) |
 | created_at / updated_at | DATETIME | Timestamp |
 
 ### 3.3 Relasi Antar Tabel
@@ -232,6 +262,9 @@ alumni   → nisn → tracer_study (one-to-many via nisn)
 │  │  - CRUD Tracer    │                                             │
 │  │  - Lihat Laporan  │                                             │
 │  │  - Cetak SKL      │                                             │
+│  │  - Import Siswa   │                                             │
+│  │  - Keterserapan   │                                             │
+│  │  - Atur Kelulusan │                                             │
 │  └───────────────────┘                                             │
 │                                                                     │
 │  ┌───────────────────┐                                             │
@@ -385,8 +418,8 @@ alumni   → nisn → tracer_study (one-to-many via nisn)
 │  │+index()  │  ├──────────┤  │+index()  │  │+index()      │      │
 │  │+dashboard│  │+dashboard│  │+loginProc│  │+prosesCek()  │      │
 │  │+siswa()  │  │+siswa()  │  │+logout() │  │+cetak($nisn) │      │
-│  │+siswaTmbh│  │+alumni() │  └──────────┘  └──────────────┘      │
-│  │+siswaSimp│  │+tracer() │                                       │
+│  │+siswaTmbh│  │+alumni() │  └──────────┘  │+downloadPdf()│      │
+│  │+siswaSimp│  │+tracer() │                └──────────────┘      │
 │  │+siswaEdit│  │+laporan()│        ┌──────────────────┐           │
 │  │+siswaUpdt│  └──────────┘        │  TracerStudy     │           │
 │  │+siswaHps │                      │  Controller      │           │
@@ -401,6 +434,12 @@ alumni   → nisn → tracer_study (one-to-many via nisn)
 │  │+tracerHps│        │+tracking │                                  │
 │  │+laporan()│        │+updateSt │                                  │
 │  │+profil() │        └──────────┘                                  │
+│  │+impSiswa │                                                      │
+│  │+prosImp()│                                                      │
+│  │+tempExcl │                                                      │
+│  │+pengKelul│                                                      │
+│  │+simpPeng │                                                      │
+│  │+ketersera│                                                      │
 │  └──────────┘                                                      │
 │                                                                    │
 ├────────────────────────────────────────────────────────────────────┤
@@ -418,17 +457,29 @@ alumni   → nisn → tracer_study (one-to-many via nisn)
 │  └─────────────┘  │+getAlumniTerb│                                 │
 │                   └──────────────┘                                 │
 │                                                                    │
+│                   ┌───────────────────────┐                        │
+│                   │PengaturanKelulusanMod │                        │
+│                   ├───────────────────────┤                        │
+│                   │#table=pengaturan_kelul│                        │
+│                   │+getAktif()            │                        │
+│                   │+isWaktuPengumuman()   │                        │
+│                   │+getWaktuPengumuman()  │                        │
+│                   │+nonaktifkanSemua()    │                        │
+│                   └───────────────────────┘                        │
+│                                                                    │
 ├────────────────────────────────────────────────────────────────────┤
 │                    VIEWS                                           │
 ├────────────────────────────────────────────────────────────────────┤
 │                                                                    │
 │  ┌─────────────────────────────────────────────────────────┐       │
 │  │  Public: kelulusan.php, alumni/index.php,               │       │
-│  │          tracer_study/form.php, hasil_kelulusan.php     │       │
+│  │          tracer_study/form.php, hasil_kelulusan.php,    │       │
+│  │          skl_pdf.php                                    │       │
 │  │  Auth: login.php                                        │       │
 │  │  Admin: dashboard, siswa, siswa_tambah, siswa_edit,     │       │
-│  │         alumni, alumni_detail, alumni_tambah,           │       │
-│  │         alumni_edit, tracer, laporan, profil            │       │
+│  │         import_siswa, alumni, alumni_detail,            │       │
+│  │         alumni_tambah, alumni_edit, tracer, laporan,    │       │
+│  │         profil, pengaturan_kelulusan, keterserapan      │       │
 │  │  Kepsek: dashboard, siswa, alumni, tracer, laporan      │       │
 │  └─────────────────────────────────────────────────────────┘       │
 │                                                                    │
@@ -599,7 +650,8 @@ alumni   → nisn → tracer_study (one-to-many via nisn)
 |--------|-----|-------------------|-----------|
 | GET | `/` | `Kelulusan::index` | Halaman cek kelulusan |
 | POST | `/proses-cek` | `Kelulusan::prosesCek` | Proses pengecekan NISN |
-| GET | `/cetak-kelulusan/(:any)` | `Kelulusan::cetak` | Cetak surat kelulusan |
+| GET | `/cetak-kelulusan/(:any)` | `Kelulusan::cetak` | Cetak surat kelulusan (HTML) |
+| GET | `/kelulusan/downloadPdf/(:any)` | `Kelulusan::downloadPdf` | Cetak surat kelulusan (PDF) |
 | GET | `/alumni` | `Alumni::index` | Halaman tracking alumni |
 | POST | `/alumni/tracking` | `Alumni::tracking` | Cari data alumni |
 | POST | `/alumni/update-status` | `Alumni::updateStatus` | Update data alumni |
@@ -636,6 +688,12 @@ alumni   → nisn → tracer_study (one-to-many via nisn)
 | GET | `/admin/tracer/hapus/(:num)` | `Admin::tracerHapus` | Hapus tracer |
 | GET | `/admin/laporan` | `Admin::laporan` | Halaman laporan |
 | GET | `/admin/profil` | `Admin::profil` | Profil admin |
+| GET | `/admin/siswa/import` | `Admin::importSiswa` | Form import siswa via excel |
+| POST | `/admin/siswa/proses-import` | `Admin::prosesImport` | Proses import siswa |
+| GET | `/admin/siswa/template-excel` | `Admin::templateExcel` | Download template excel |
+| GET | `/admin/pengaturan-kelulusan` | `Admin::pengaturanKelulusan` | Pengaturan countdown kelulusan |
+| POST | `/admin/pengaturan-kelulusan/simpan` | `Admin::simpanPengaturan` | Simpan pengaturan kelulusan |
+| GET | `/admin/keterserapan` | `Admin::keterserapan` | Laporan keterserapan lulusan |
 
 ### 9.4 Kepsek Routes (Filter: login:kepsek)
 
@@ -666,11 +724,13 @@ alumni   → nisn → tracer_study (one-to-many via nisn)
 | Fitur | Deskripsi |
 |-------|-----------|
 | **Dashboard** | Ringkasan total siswa, alumni, tracer; statistik kelulusan per tahun; alumni terbaru |
-| **CRUD Siswa** | Tambah, lihat, edit, hapus data siswa; filter berdasarkan tahun lulus |
+| **CRUD Siswa** | Tambah, lihat, edit, hapus data siswa; filter berdasarkan tahun lulus; Import data via Excel |
 | **CRUD Alumni** | Tambah, lihat, edit, hapus data alumni; filter berdasarkan tahun lulus |
 | **Tracer Study** | Lihat data tracer study yang diisi alumni; hapus data |
 | **Laporan** | Statistik kelulusan, aktivitas alumni, status tracer study |
 | **Profil** | Informasi profil admin |
+| **Pengaturan Kelulusan** | Mengatur tanggal dan jam pengumuman kelulusan (countdown date/time) |
+| **Keterserapan Lulusan** | Melihat statistik lengkap keterserapan alumni (bekerja, kuliah, wirausaha, dll) |
 
 ### 10.3 Fitur Kepala Sekolah
 

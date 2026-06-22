@@ -38,14 +38,21 @@
 <div class="sidebar">
     <div class="sidebar-brand">
         <div class="brand-icon" style="background:none;box-shadow:none;border-radius:0;"><img src="<?= base_url('logo%20pgri.png') ?>" alt="Logo" style="width:50px;height:auto;"></div>
-        <div><h5>SMA PGRI 1</h5><small>Kepala Sekolah</small></div>
+        <div>
+            <h5>SMA PGRI 1</h5>
+            <small>Kepala Sekolah</small>
+        </div>
     </div>
     <a href="<?= base_url('kepsek/dashboard') ?>" class="nav-item"><i class="fa-solid fa-chart-pie"></i><span>Dashboard</span></a>
     <a href="<?= base_url('kepsek/siswa') ?>" class="nav-item"><i class="fa-solid fa-users"></i><span>Data Siswa</span></a>
     <a href="<?= base_url('kepsek/alumni') ?>" class="nav-item active"><i class="fa-solid fa-user-graduate"></i><span>Data Alumni</span></a>
     <a href="<?= base_url('kepsek/tracer') ?>" class="nav-item"><i class="fa-solid fa-clipboard-list"></i><span>Tracer Study</span></a>
-    <a href="<?= base_url('kepsek/laporan') ?>" class="nav-item"><i class="fa-solid fa-file-chart-bar"></i><span>Laporan</span></a>
-    <div class="sidebar-footer"><a href="<?= base_url('logout') ?>" class="nav-item"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></a></div>
+    <a href="<?= base_url('kepsek/laporan') ?>" class="nav-item"><i class="fa-solid fa-chart-bar"></i><span>Laporan</span></a>
+    <a href="<?= base_url('kepsek/pengaturan-kelulusan') ?>" class="nav-item"><i class="fa-solid fa-clock"></i><span>Pengaturan Kelulusan</span></a>
+    <a href="<?= base_url('kepsek/keterserapan') ?>" class="nav-item"><i class="fa-solid fa-chart-line"></i><span>Keterserapan</span></a>
+    <div class="sidebar-footer">
+        <a href="<?= base_url('logout') ?>" class="nav-item"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></a>
+    </div>
 </div>
 <div class="main-content">
     <div class="top-bar">

@@ -26,7 +26,27 @@ class TracerStudyModel extends Model
             FROM tracer_study
             GROUP BY status_setelah_lulus
         ");
-        return $query->getResultArray();
+        $results = $query->getResultArray();
+
+        $default = [
+            'BEKERJA' => 0,
+            'KULIAH' => 0,
+            'WIRAUSAHA' => 0,
+            'MENIKAH' => 0,
+            'BELUM_BEKERJA' => 0
+        ];
+
+        foreach ($results as $row) {
+            if (!empty($row['status_setelah_lulus'])) {
+                $default[$row['status_setelah_lulus']] = $row['total'];
+            }
+        }
+
+        $final = [];
+        foreach ($default as $status => $total) {
+            $final[] = ['status_setelah_lulus' => $status, 'total' => $total];
+        }
+        return $final;
     }
 
     public function getRataResponden()

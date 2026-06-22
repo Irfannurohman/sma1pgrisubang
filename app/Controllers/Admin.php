@@ -6,6 +6,7 @@ use App\Models\SiswaModel;
 use App\Models\AlumniModel;
 use App\Models\TracerStudyModel;
 use App\Models\UserModel;
+use App\Models\PengaturanKelulusanModel;
 
 class Admin extends BaseController
 {
@@ -106,6 +107,161 @@ class Admin extends BaseController
         return redirect()->to('/admin/siswa');
     }
 
+    // ============================================================
+    // IMPORT SISWA VIA EXCEL
+    // ============================================================
+    public function importSiswa()
+    {
+        return view('admin/import_siswa');
+    }
+
+    public function prosesImport()
+    {
+        $file = $this->request->getFile('file_excel');
+
+        if (!$file || !$file->isValid()) {
+            session()->setFlashdata('error', 'File tidak valid. Silakan pilih file Excel.');
+            return redirect()->to('/admin/siswa/import');
+        }
+
+        $ext = $file->getClientExtension();
+        if (!in_array($ext, ['xlsx', 'xls'])) {
+            session()->setFlashdata('error', 'Format file harus .xlsx atau .xls');
+            return redirect()->to('/admin/siswa/import');
+        }
+
+        $filePath = $file->getTempName();
+
+        try {
+            $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($filePath);
+            $sheet = $spreadsheet->getActiveSheet();
+            $rows = $sheet->toArray();
+
+            // Skip header row
+            $model = new SiswaModel();
+            $berhasil = 0;
+            $gagal = 0;
+            $errors = [];
+
+            for ($i = 1; $i < count($rows); $i++) {
+                $row = $rows[$i];
+                
+                // Skip empty rows
+                if (empty($row[0]) && empty($row[1])) continue;
+
+                // Format: NISN, Nama Siswa, Tempat Lahir, Tanggal Lahir, Jenis Kelamin, Nama Orang Tua, Kelas, Jurusan, Tahun Lulus, Status Kelulusan
+                $nisn = trim($row[0] ?? '');
+                $nama = trim($row[1] ?? '');
+                
+                if (empty($nisn) || empty($nama)) {
+                    $gagal++;
+                    $errors[] = "Baris " . ($i + 1) . ": NISN atau Nama kosong.";
+                    continue;
+                }
+
+                // Check duplicate NISN
+                $existing = $model->where('nisn', $nisn)->first();
+                if ($existing) {
+                    $gagal++;
+                    $errors[] = "Baris " . ($i + 1) . ": NISN $nisn sudah terdaftar (" . $existing['nama_siswa'] . ").";
+                    continue;
+                }
+
+                try {
+                    // Parse tanggal lahir
+                    $tglLahir = null;
+                    if (!empty($row[3])) {
+                        if (is_numeric($row[3])) {
+                            // Excel serial date
+                            $tglLahir = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($row[3])->format('Y-m-d');
+                        } else {
+                            $tglLahir = date('Y-m-d', strtotime($row[3]));
+                        }
+                    }
+
+                    $model->save([
+                        'nisn' => $nisn,
+                        'nama_siswa' => $nama,
+                        'tempat_lahir' => trim($row[2] ?? ''),
+                        'tanggal_lahir' => $tglLahir,
+                        'jenis_kelamin' => strtoupper(trim($row[4] ?? '')),
+                        'nama_orang_tua' => trim($row[5] ?? ''),
+                        'kelas' => trim($row[6] ?? ''),
+                        'jurusan' => trim($row[7] ?? ''),
+                        'tahun_lulus' => trim($row[8] ?? ''),
+                        'status_kelulusan' => strtoupper(trim($row[9] ?? 'LULUS')),
+                    ]);
+                    $berhasil++;
+                } catch (\Exception $e) {
+                    $gagal++;
+                    $errors[] = "Baris " . ($i + 1) . ": " . $e->getMessage();
+                }
+            }
+
+            $msg = "Import selesai! $berhasil data berhasil diimport.";
+            if ($gagal > 0) {
+                $msg .= " $gagal data gagal.";
+            }
+
+            session()->setFlashdata('success', $msg);
+            if (!empty($errors)) {
+                session()->setFlashdata('import_errors', $errors);
+            }
+
+        } catch (\Exception $e) {
+            session()->setFlashdata('error', 'Gagal membaca file Excel: ' . $e->getMessage());
+        }
+
+        return redirect()->to('/admin/siswa/import');
+    }
+
+    public function templateExcel()
+    {
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Template Data Siswa');
+
+        // Header
+        $headers = ['NISN', 'Nama Siswa', 'Tempat Lahir', 'Tanggal Lahir', 'Jenis Kelamin (L/P)', 'Nama Orang Tua', 'Kelas', 'Jurusan', 'Tahun Lulus', 'Status Kelulusan'];
+        foreach ($headers as $col => $header) {
+            $cell = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col + 1) . '1';
+            $sheet->setCellValue($cell, $header);
+            $sheet->getStyle($cell)->getFont()->setBold(true);
+            $sheet->getStyle($cell)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID);
+            $sheet->getStyle($cell)->getFill()->getStartColor()->setRGB('4472C4');
+            $sheet->getStyle($cell)->getFont()->getColor()->setRGB('FFFFFF');
+        }
+
+        // Example row
+        $sheet->setCellValue('A2', '0062789099');
+        $sheet->setCellValue('B2', 'Contoh Nama Siswa');
+        $sheet->setCellValue('C2', 'Subang');
+        $sheet->setCellValue('D2', '2006-01-15');
+        $sheet->setCellValue('E2', 'L');
+        $sheet->setCellValue('F2', 'Nama Orang Tua');
+        $sheet->setCellValue('G2', 'XII MIPA 1');
+        $sheet->setCellValue('H2', 'MIPA');
+        $sheet->setCellValue('I2', '2026');
+        $sheet->setCellValue('J2', 'LULUS');
+
+        // Auto-size columns
+        foreach (range('A', 'J') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="template_data_siswa.xlsx"');
+        header('Cache-Control: max-age=0');
+        
+        $writer->save('php://output');
+        exit;
+    }
+
+    // ============================================================
+    // ALUMNI
+    // ============================================================
     public function alumni()
     {
         $model = new AlumniModel();
@@ -195,6 +351,9 @@ class Admin extends BaseController
         return redirect()->to('/admin/alumni');
     }
 
+    // ============================================================
+    // TRACER STUDY
+    // ============================================================
     public function tracer()
     {
         $model = new TracerStudyModel();
@@ -211,6 +370,9 @@ class Admin extends BaseController
         return redirect()->to('/admin/tracer');
     }
 
+    // ============================================================
+    // LAPORAN
+    // ============================================================
     public function laporan()
     {
         $siswaModel = new SiswaModel();
@@ -232,5 +394,94 @@ class Admin extends BaseController
     public function profil()
     {
         return view('admin/profil');
+    }
+
+    // ============================================================
+    // PENGATURAN KELULUSAN (COUNTDOWN)
+    // ============================================================
+    public function pengaturanKelulusan()
+    {
+        $model = new PengaturanKelulusanModel();
+        $data['pengaturan'] = $model->getAktif();
+        $data['semua_pengaturan'] = $model->orderBy('id', 'DESC')->findAll();
+        return view('admin/pengaturan_kelulusan', $data);
+    }
+
+    public function simpanPengaturan()
+    {
+        $model = new PengaturanKelulusanModel();
+
+        // Nonaktifkan semua pengaturan sebelumnya
+        $model->nonaktifkanSemua();
+
+        $model->save([
+            'tahun_ajaran' => $this->request->getPost('tahun_ajaran'),
+            'tanggal_pengumuman' => $this->request->getPost('tanggal_pengumuman'),
+            'jam_pengumuman' => $this->request->getPost('jam_pengumuman'),
+            'pesan_sebelum' => $this->request->getPost('pesan_sebelum'),
+            'pesan_sesudah' => $this->request->getPost('pesan_sesudah'),
+            'is_aktif' => 1,
+        ]);
+
+        session()->setFlashdata('success', 'Pengaturan kelulusan berhasil disimpan.');
+        return redirect()->to('/admin/pengaturan-kelulusan');
+    }
+
+    public function hapusPengaturan($id)
+    {
+        $model = new PengaturanKelulusanModel();
+        $model->delete($id);
+        session()->setFlashdata('success', 'Riwayat pengaturan berhasil dihapus.');
+        return redirect()->to('/admin/pengaturan-kelulusan');
+    }
+
+    // ============================================================
+    // KETERSERAPAN LULUSAN
+    // ============================================================
+    public function keterserapan()
+    {
+        $alumniModel = new AlumniModel();
+        $db = \Config\Database::connect();
+
+        // Statistik per tahun lulus
+        $query = $db->query("
+            SELECT 
+                tahun_lulus,
+                COUNT(*) as total,
+                SUM(CASE WHEN status_aktivitas = 'BEKERJA' THEN 1 ELSE 0 END) as bekerja,
+                SUM(CASE WHEN status_aktivitas = 'KULIAH' THEN 1 ELSE 0 END) as kuliah,
+                SUM(CASE WHEN status_aktivitas = 'WIRAUSAHA' THEN 1 ELSE 0 END) as wirausaha,
+                SUM(CASE WHEN status_aktivitas = 'BELUM' THEN 1 ELSE 0 END) as belum,
+                SUM(CASE WHEN status_aktivitas = 'MENIKAH' THEN 1 ELSE 0 END) as menikah
+            FROM alumni
+            GROUP BY tahun_lulus
+            ORDER BY tahun_lulus DESC
+        ");
+        $data['statistik_per_tahun'] = $query->getResultArray();
+
+        // Total keseluruhan
+        $queryTotal = $db->query("
+            SELECT 
+                COUNT(*) as total,
+                SUM(CASE WHEN status_aktivitas = 'BEKERJA' THEN 1 ELSE 0 END) as bekerja,
+                SUM(CASE WHEN status_aktivitas = 'KULIAH' THEN 1 ELSE 0 END) as kuliah,
+                SUM(CASE WHEN status_aktivitas = 'WIRAUSAHA' THEN 1 ELSE 0 END) as wirausaha,
+                SUM(CASE WHEN status_aktivitas = 'BELUM' THEN 1 ELSE 0 END) as belum,
+                SUM(CASE WHEN status_aktivitas = 'MENIKAH' THEN 1 ELSE 0 END) as menikah
+            FROM alumni
+        ");
+        $data['total_keterserapan'] = $queryTotal->getRowArray();
+
+        // Detail alumni per tahun (jika ada filter)
+        $tahun = $this->request->getGet('tahun');
+        if ($tahun) {
+            $data['detail_alumni'] = $alumniModel->where('tahun_lulus', $tahun)->orderBy('nama_alumni', 'ASC')->findAll();
+        }
+        $data['tahun_filter'] = $tahun;
+
+        // Daftar tahun
+        $data['daftar_tahun'] = $alumniModel->select('tahun_lulus')->distinct()->orderBy('tahun_lulus', 'DESC')->findAll();
+
+        return view('admin/keterserapan', $data);
     }
 }
